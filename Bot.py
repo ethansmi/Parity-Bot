@@ -6,15 +6,20 @@ import os
 from threading import Thread
 from slack import WebClient
 
+import discord
+
 
 # This `app` represents your existing Flask app
 app = Flask(__name__)
 
 greetings = ["hi", "hello", "hello there", "hey"]
 
+bot_name = os.environ['BOT_NAME']
 SLACK_SIGNING_SECRET = os.environ['SLACK_SIGNING_SECRET']
 slack_token = os.environ['SLACK_BOT_TOKEN']
 VERIFICATION_TOKEN = os.environ['VERIFICATION_TOKEN']
+
+DISCORD_TOKEN = os.environ['DISCORD_TOKEN']
 
 #instantiating slack client
 slack_client = WebClient(slack_token)
@@ -44,11 +49,10 @@ def handle_message(event_data):
     def send_reply(value):
         event_data = value
         message = event_data["event"]
-        if message.get("subtype") is None:
+        if not message.get("subtype"):
             command = message.get("text")
             channel_id = message["channel"]
-            if any(item in command.lower() for item in greetings):
-                print()
+            if any(item in command.lower() for item in greetings) and "bot_profile" not in message.keys():
                 message = (
                     "Hello <@%s>! :tada:"
                     % message["user"]  # noqa
