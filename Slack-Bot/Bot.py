@@ -48,7 +48,6 @@ def handle_message(event_data):
             command = message.get("text")
             channel_id = message["channel"]
             if any(item in command.lower() for item in greetings):
-                print()
                 message = (
                     "Hello <@%s>! :tada:"
                     % message["user"]  # noqa
