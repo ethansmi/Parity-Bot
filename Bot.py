@@ -1,13 +1,13 @@
-import json
+import json, re
 
-from flask import Flask, Response
+from flask import Flask, Response, request, abort, jsonify
 from slackeventsapi import SlackEventAdapter
 import os
 from threading import Thread
 from slack import WebClient
 
 import discord
-
+from discord import Webhook, RequestsWebhookAdapter, Embed, Color
 
 # This `app` represents your existing Flask app
 app = Flask(__name__)
@@ -19,10 +19,9 @@ SLACK_SIGNING_SECRET = os.environ['SLACK_SIGNING_SECRET']
 slack_token = os.environ['SLACK_BOT_TOKEN']
 VERIFICATION_TOKEN = os.environ['VERIFICATION_TOKEN']
 
-DISCORD_TOKEN = os.environ['DISCORD_TOKEN']
-
-#instantiating slack client
+# instantiating slack client
 slack_client = WebClient(slack_token)
+
 
 # An example of one of your Flask app's routes
 @app.route("/")
@@ -36,11 +35,10 @@ def event_hook(request):
             response_dict = {"challenge": json_dict["challenge"]}
             return response_dict
     return {"status": 500}
-    return
 
 
 slack_events_adapter = SlackEventAdapter(
-    SLACK_SIGNING_SECRET, "/slack/events", app
+    SLACK_SIGNING_SECRET, "/parity", app
 )
 
 
@@ -54,10 +52,11 @@ def handle_message(event_data):
             channel_id = message["channel"]
             if any(item in command.lower() for item in greetings) and "bot_profile" not in message.keys():
                 message = (
-                    "Hello <@%s>! :tada:"
-                    % message["user"]  # noqa
+                        "Hello <@%s>! :tada:"
+                        % message["user"]  # noqa
                 )
                 slack_client.chat_postMessage(channel=channel_id, text=message)
+
     thread = Thread(target=send_reply, kwargs={"value": event_data})
     thread.start()
     return Response(status=200)
@@ -65,4 +64,4 @@ def handle_message(event_data):
 
 # Start the server on port 3000
 if __name__ == "__main__":
-  app.run(port=3000)
+    app.run(port=3000)
